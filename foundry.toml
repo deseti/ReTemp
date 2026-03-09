@@ -1,0 +1,28 @@
+[profile.default]
+src = "contracts"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "script"
+solc_version = "0.8.20"
+evm_version = "paris"
+remappings = [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "forge-std/=lib/forge-std/src/",
+]
+
+# Tempo Testnet — TIP-1000 makes contract deployments 5-10x more expensive.
+# We multiply the simulated gas estimate by 10 to ensure transactions succeed.
+gas_limit = 30_000_000
+
+[profile.default.fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true
+
+# Tempo Testnet (Moderato)
+[rpc_endpoints]
+tempo = "https://rpc.moderato.tempo.xyz"
+
+[etherscan]
+tempo = { key = "none", url = "https://contracts.tempo.xyz/api", chain = 42431 }

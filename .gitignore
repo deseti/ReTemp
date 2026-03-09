@@ -1,0 +1,15 @@
+# Foundry build output
+out/
+cache/
+
+# Library dependencies (managed by forge)
+lib/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
