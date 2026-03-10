@@ -267,6 +267,66 @@ contract ReTempPool is IReTempPool {
         emit Swap(msg.sender, tokenIn, amountIn, amountOut);
     }
 
+    /// @notice Push-based swap: caller sends tokenIn to pool first, then calls this.
+    ///         Used by the router to avoid approve/transferFrom (which costs extra
+    ///         TIP-20 fees on Tempo for every approve call).
+    ///
+    /// @dev   Detects the received amount via balanceOf delta:
+    ///        actualAmountIn = balance(tokenIn) − reserveIn
+    ///        Uses that actual figure for the AMM calculation so misdirected
+    ///        transfers (dust, fee-on-transfer tokens) are handled correctly.
+    ///
+    /// @param tokenIn  Token already sent to this pool
+    /// @param amountIn Expected amount (used only for validation; actual is from balance)
+    /// @return amountOut Amount of tokenOut sent to caller
+    function swapDirect(address tokenIn, uint256 amountIn) external returns (uint256 amountOut) {
+        if (tokenIn != tokenA && tokenIn != tokenB) revert InvalidToken(tokenIn);
+        if (amountIn == 0) revert ZeroAmount();
+
+        // ── Cache reserves ───────────────────────────────────────────────────
+        uint256 _reserveA = reserveA;
+        uint256 _reserveB = reserveB;
+
+        if (_reserveA == 0 || _reserveB == 0) revert InsufficientLiquidity();
+
+        // ── Determine direction ──────────────────────────────────────────────
+        bool isTokenA      = (tokenIn == tokenA);
+        address tokenOut   = isTokenA ? tokenB : tokenA;
+        uint256 reserveIn  = isTokenA ? _reserveA : _reserveB;
+        uint256 reserveOut = isTokenA ? _reserveB : _reserveA;
+
+        // ── Detect actual received amount via balance delta ───────────────────
+        uint256 balanceIn = IERC20(tokenIn).balanceOf(address(this));
+        uint256 actualIn  = balanceIn - reserveIn; // tokens already pushed by caller
+        if (actualIn == 0) revert ZeroAmount();
+
+        // ── Calculate amountOut ─────────────────────────────────────────────
+        amountOut = _getAmountOut(actualIn, reserveIn, reserveOut);
+
+        if (amountOut == 0) revert InsufficientOutputAmount();
+        if (amountOut >= reserveOut) revert InsufficientLiquidity();
+
+        // ── Effect: update reserves ──────────────────────────────────────────
+        uint256 newReserveIn  = reserveIn  + actualIn;
+        uint256 newReserveOut = reserveOut - amountOut;
+
+        if (isTokenA) {
+            reserveA = newReserveIn;
+            reserveB = newReserveOut;
+        } else {
+            reserveA = newReserveOut;
+            reserveB = newReserveIn;
+        }
+
+        // ── Invariant check ──────────────────────────────────────────────────
+        assert(newReserveIn * newReserveOut >= reserveIn * reserveOut);
+
+        // ── Transfer tokenOut to caller ──────────────────────────────────────
+        IERC20(tokenOut).safeTransfer(msg.sender, amountOut);
+
+        emit Swap(msg.sender, tokenIn, actualIn, amountOut);
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // View Functions
     // ─────────────────────────────────────────────────────────────────────────

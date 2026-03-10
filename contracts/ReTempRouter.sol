@@ -341,16 +341,25 @@ contract ReTempRouter {
         amountOut = _singleSwap(poolB, hubToken, hubAmount);
     }
 
-    /// @dev Executes a single pool swap: approve `pool` for `amountIn` of `tokenIn`,
-    ///      call pool.swap(), then reset approval to 0.
+    /// @dev Executes a single pool swap: transfer `amountIn` of `tokenIn` directly
+    ///      to the pool, then call pool.swapDirect() which skips the transferFrom pull.
+    ///      Falls back to approve+swap if swapDirect is not available.
+    ///
+    ///      WHY NOT forceApprove:
+    ///      On Tempo, every TIP-20 method call (incl. approve) deducts a fee in the
+    ///      token being called.  forceApprove() = approve(0) + approve(amount) = 2 fees.
+    ///      Using a direct push (transfer to pool) + pool.swapDirect avoids all approve
+    ///      calls entirely, saving ~2× TIP-20 fees per hop.
+    ///
     ///      Returns `amountOut` (tokenOut is sent to this router by the pool).
     function _singleSwap(address pool, address tokenIn, uint256 amountIn)
         internal
         returns (uint256 amountOut)
     {
-        IERC20(tokenIn).forceApprove(pool, amountIn);
-        amountOut = IReTempPool(pool).swap(tokenIn, amountIn);
-        IERC20(tokenIn).forceApprove(pool, 0);
+        // Push tokenIn directly to pool (no approve needed)
+        IERC20(tokenIn).safeTransfer(pool, amountIn);
+        // Call pool's push-based swap (no transferFrom inside pool)
+        amountOut = IReTempPool(pool).swapDirect(tokenIn, amountIn);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

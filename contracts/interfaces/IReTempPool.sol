@@ -27,6 +27,14 @@ interface IReTempPool {
     /// @return amountOut Amount of output token received
     function swap(address tokenIn, uint256 amountIn) external returns (uint256 amountOut);
 
+    /// @notice Push-based swap: caller transfers tokenIn to pool first, then calls this.
+    ///         Avoids approve/transferFrom; used by the router for Tempo TIP-20 compatibility.
+    /// @param tokenIn  Token already transferred to pool by caller
+    /// @param amountIn Expected amount (actual detected from balance delta)
+    /// @return amountOut Amount of output token sent to caller
+    function swapDirect(address tokenIn, uint256 amountIn) external returns (uint256 amountOut);
+
+
     /// @notice Returns the expected output for a given input (read-only)
     /// @param amountIn  Amount of tokenIn
     /// @param tokenIn   Address of the input token
