@@ -100,14 +100,6 @@ AlphaUSD is the hub routing token for all 2-hop swaps.
 
 ---
 
-# DEPRECATED Contracts (do not use)
-
-| Contract | Old Address | Reason |
-|---|---|---|
-| Router (old) | 0x9A54F31caEb1e6097f55F9A9D6E211A931C612F6 | forceApprove double-fee bug on TIP-20 |
-| poolAlphaBeta (old) | 0x5c480582a063689a282637e8fB23a9C300127662 | No swapDirect — not compatible with new router |
-| poolAlphaTheta (old) | 0x524Ec330c1Ae05E05669664a93310Fe30cB6f10e | No swapDirect — not compatible with new router |
-| poolAlphaPath (old) | 0x6Ff5BBED78E0CF0e1f42bCB0FE3796924545f173 | No swapDirect — not compatible with new router |
 
 ---
 
