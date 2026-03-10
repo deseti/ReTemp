@@ -10,7 +10,7 @@ import { ReTempRouter } from "../contracts/ReTempRouter.sol";
 
 /// @notice Adds liquidity to all pools then tests routeSwap through the router
 contract Seed is Script {
-    // ─── New deployed addresses ─────────────────────────────────────────────
+    // ─── Use existing deployed addresses from contracts.md ──────────────────
     address constant POOL_ALPHA_BETA  = 0x857F4F2dEF1a6A2C4c417ae2c5bb1A62F1A0950C;
     address constant POOL_ALPHA_THETA = 0x86ca17F2fe550E8B245cB23967343bc5C8DCfab9;
     address constant POOL_ALPHA_PATH  = 0x23b549AbaE9003ceBD95ac4fFe2BC948E7DcBfEd;
